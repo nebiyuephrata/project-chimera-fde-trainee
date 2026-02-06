@@ -16,7 +16,7 @@ setup:
 	uv sync --dev
 
 test:
-	uv run pytest
+	PYTHONPATH=. uv run pytest
 
 lint:
 	uv run ruff check .
