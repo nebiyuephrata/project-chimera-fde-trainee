@@ -1,55 +1,81 @@
-# Project Chimera – Forward Deployed Engineer (FDE) Trainee Assessment
+# Project Chimera – FDE Trainee Submission
 
-**Repository for the 10 Academy / Tenacious FDE Trainee Challenge**  
-**Date:** February 2026  
-**Trainee:** Ephrata Nebiyu
+Spec-driven architecture for Autonomous AI Influencers using MCP, FastRender Swarm, Agentic Commerce (Coinbase AgentKit), and TDD governance.
+
+**Trainee:** Ephrata Nebiyu  
+**Assessment:** 10 Academy / Tenacious FDE Trainee Challenge  
+**Date:** February 2026
 
 ## Overview
+Robust, traceable engineering environment for autonomous influencers — perception (MCP), reasoning (Swarm), content generation, engagement, economic agency.
 
-This repository contains my submission for the **Project Chimera: The Agentic Infrastructure Challenge**.
+Role: Lead Architect & Governor (spec-first, no vibe coding).
 
-Project Chimera is an autonomous influencer network — a system that creates and operates persistent, goal-directed AI influencers capable of researching trends, generating multimodal content (text, images, video), engaging audiences across social platforms, and even managing economic transactions via non-custodial wallets (Coinbase AgentKit).
+## Core Principles
+- Spec-Driven Development (SDD)
+- Traceability via Tenx MCP Sense
+- Hierarchical FastRender Swarm (Planner → Worker → Judge)
+- HITL, confidence scoring, budget controls, OCC
+- Dockerized, Makefile, CI/CD, failing TDD tests
 
-My role as **Forward Deployed Engineer (FDE) Trainee** is to act as the **Lead Architect and Governor** — not to rapidly prototype, but to build a **robust, spec-driven, traceable, and agent-ready engineering environment** that a swarm of AI agents could later use to implement features with minimal human intervention.
-
-## Core Principles Demonstrated
-
-- **Spec-Driven Development (SDD)** — All implementation follows ratified specifications (specs/ directory)
-- **Traceability** — Connected to Tenx MCP Sense throughout development
-- **Agentic Orchestration** — Hierarchical FastRender Swarm (Planner → Worker → Judge)
-- **Governance & Safety** — Human-in-the-Loop (HITL), confidence scoring, budget controls, OCC
-- **Infrastructure as Code** — Dockerized environment, Makefile, CI/CD pipeline, failing TDD tests
-- **Tool Separation** — Developer MCP tools vs runtime Agent Skills
-
-## Repository Structure
+## Structure
 project-chimera-fde-trainee/
-├── README.md                  # Project overview, your role, submission links, how to run/setup
-├── docs/                      # Research & decisions (Day 1 focus)
-│   ├── research-summary.md    # Key insights from readings (a16z, OpenClaw/MoltBook, SRS Qs)
-│   └── architecture_strategy.md # Agent pattern, HITL placement, DB choice, why + Mermaid diagram
-├── specs/                     # Empty for now — populate Day 2 with GitHub Spec Kit files
-│   ├── _meta.md               # (stub: high-level vision/constraints placeholder)
-│   ├── functional.md          # (stub: placeholder user stories)
-│   └── technical.md           # (stub: placeholder API/DB notes)
-├── infra/                     # Setup & containerization (start Day 1–2)
-│   ├── Dockerfile             # (stub or basic Python base image)
-│   ├── Makefile               # (stub: targets like setup, test)
-│   └── setup.sh               # (optional: uv/pyproject.toml init script)
-├── mcp-config/                # MCP & skills (notes Day 1, full Day 2)
-│   └── tooling_strategy.md    # Dev MCP servers vs runtime skills separation
-├── skills/                    # Skill contracts (Day 2+)
-│   └── README.md              # Placeholder: "Skills interfaces to be defined here"
-├── tests/                     # TDD failing tests (Day 3)
-│   └── (empty for now)
-├── .github/workflows/         # CI/CD (Day 3)
-│   └── main.yml               # (stub: basic test runner placeholder)
-├── .cursor/                   # or CLAUDE.md — IDE agent rules
-│   └── rules.md               # (stub: Prime Directive, context)
-├── pyproject.toml             # or requirements.txt — Python env (uv recommended)
-└── .gitignore                 # Standard Python + secrets ignore
+├── .cursor/                      # Cursor IDE rules & context (critical for spec enforcement)
+│   └── rules.md
+├── .github/                      # CI/CD & workflows
+│   └── workflows/
+│       └── ci.yml                # Lint, test, spec-check on push
+├── docs/                         # Research, decisions, diagrams (Day 1–2)
+│   ├── research-summary.md
+│   ├── architecture_strategy.md
+│   └── diagrams/                 # Mermaid exports or draw.io files (optional)
+├── infra/                        # Infrastructure as Code (Docker, Makefile, Helm later)
+│   ├── Dockerfile
+│   ├── Makefile
+│   ├── docker-compose.yml        # Local dev (Redis, Weaviate, MCP servers)
+│   └── k8s/                      # Future Kubernetes manifests (stub for now)
+├── mcp-config/                   # MCP-specific configs & servers
+│   ├── tooling_strategy.md       # Dev vs Runtime separation
+│   └── servers/                  # Custom MCP server stubs (e.g., news_server.py)
+├── scripts/                      # Utility scripts (setup, bootstrap, validate-specs)
+│   └── bootstrap.sh              # One-click env setup
+├── skills/                       # Runtime Agent Skills (interfaces & impl)
+│   ├── README.md
+│   ├── trend_fetch/
+│   ├── generate_content/
+│   └── post_content/
+├── specs/                        # Source of truth — GitHub Spec Kit style
+│   ├── _meta.md                  # Vision, constraints, glossary
+│   ├── functional.md             # User stories & acceptance criteria
+│   ├── technical.md              # Schemas, DB ERD, API contracts
+│   ├── openclaw_integration.md   # Optional agent social network plan
+│   └── soul.md                   # Example agent persona (one per agent type)
+├── src/                          # Core application code (services)
+│   ├── __init__.py
+│   ├── planner/                  # Planner service
+│   ├── worker/                   # Worker pool
+│   ├── judge/                    # Judge & governance
+│   ├── orchestrator/             # Central control plane
+│   ├── core/                     # Shared utils, schemas, MCP client
+│   └── commerce/                 # Agentic Commerce logic (Coinbase AgentKit)
+├── tests/                        # TDD failing tests first
+│   ├── unit/
+│   ├── integration/
+│   └── test_task_schema.py       # Example failing test stub
+├── .env.example                  # Env vars template (no secrets)
+├── .gitignore
+├── pyproject.toml                # uv / Poetry / modern Python config
+├── README.md                     # Your current one (updated below)
+└── requirements-dev.txt          # Optional if not using pyproject.toml.
 
-## Current Status (Day 1 - Feb 04, 2026)
-- Repo initialized
-- Research summary & architecture strategy drafted (see docs/)
-- MCP Sense connected (log/screenshot in docs/ if needed)
-- Next: Specs population & tooling strategy
+## Current Status (Day 2 – Feb 06, 2026)
+- specs/ bootstrapped (_meta, functional, technical)
+- .cursor/rules.md enforcing spec-first behavior
+- Next: Populate skills/, tooling_strategy.md, initial failing tests
+
+## Setup
+```bash
+make setup          # Install deps (uv sync)
+make test           # Run failing tests (TDD)
+make spec-check     # Validate code vs specs (custom script later)
+```

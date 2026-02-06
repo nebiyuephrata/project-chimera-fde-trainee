@@ -1,0 +1,40 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "project-chimera-fde-trainee"
+version = "0.0.1"
+description = "Spec-driven architecture for autonomous AI influencers (FDE trainee)."
+readme = "README.md"
+requires-python = ">=3.11"
+authors = [{ name = "Ephrata Nebiyu" }]
+dependencies = []
+
+[project.optional-dependencies]
+dev = [
+  "black>=24.0.0",
+  "pytest>=8.0.0",
+  "ruff>=0.6.0",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]
+
+[tool.black]
+line-length = 100
+target-version = ["py311"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+extend-exclude = ["docs/diagrams", "infra/k8s"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+
