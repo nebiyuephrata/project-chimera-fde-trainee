@@ -2,8 +2,8 @@
 
 Spec-driven architecture for Autonomous AI Influencers using MCP, FastRender Swarm, Agentic Commerce (Coinbase AgentKit), and TDD governance.
 
-**Trainee:** Ephrata Nebiyu  
-**Assessment:** 10 Academy / Tenacious FDE Trainee Challenge  
+**Author:** Ephrata Nebiyu<br>
+**Assessment:** 10 Academy / Tenacious FDE Trainee Challenge<br>
 **Date:** February 2026
 
 ## Overview
@@ -19,6 +19,7 @@ Role: Lead Architect & Governor (spec-first, no vibe coding).
 - Dockerized, Makefile, CI/CD, failing TDD tests
 
 ## Structure
+```text
 project-chimera-fde-trainee/
 ├── .cursor/                      # Cursor IDE rules & context (critical for spec enforcement)
 │   └── rules.md
@@ -67,6 +68,7 @@ project-chimera-fde-trainee/
 ├── pyproject.toml                # uv / Poetry / modern Python config
 ├── README.md                     # Your current one (updated below)
 └── requirements-dev.txt          # Optional if not using pyproject.toml.
+```
 
 ## Current Status (Day 2 – Feb 06, 2026)
 - specs/ bootstrapped (_meta, functional, technical)

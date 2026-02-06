@@ -1,17 +1,23 @@
-# Technical Spec
+# Technical Specifications – Schemas, Contracts & Interfaces
 
-## Task schema (draft)
+## Database Schema (Hybrid)
+- Weaviate: vector index for semantic memory, persona embeddings, trend alerts
+- PostgreSQL: transactional tables (campaigns, logs, wallet states, user accounts)
+- Redis: task_queue, review_queue, short-term/episodic cache
 
-### `Task`
-- `id`: string
-- `title`: string
-- `description`: string
-- `status`: one of `pending | in_progress | done | failed`
-- `inputs`: object
-- `outputs`: object
-
-## Interfaces (draft)
-- `planner.plan(goal) -> Plan`
-- `worker.execute(task) -> Result`
-- `judge.evaluate(result) -> Verdict`
-
+## Agent Task Payload (JSON – Planner → Worker)
+```json
+{
+  "task_id": "uuid-v4",
+  "task_type": "generate_content | reply_comment | execute_transaction",
+  "priority": "high | medium | low",
+  "context": {
+    "goal_description": "string",
+    "persona_constraints": ["string"],
+    "required_resources": ["mcp://twitter/mentions/123", "mcp://memory/recent"]
+  },
+  "assigned_worker_id": "string",
+  "created_at": "timestamp",
+  "status": "pending | in_progress | review | complete"
+}
+```
