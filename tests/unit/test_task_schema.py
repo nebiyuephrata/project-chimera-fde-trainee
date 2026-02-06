@@ -182,8 +182,9 @@ def test_context_requires_required_resources_list() -> None:
 
 def test_invalid_priority_value_not_in_spec_enum() -> None:
     """
-    Additional guardrail for the priority enum from specs/technical.md:
-    - priority: "high | medium | low"
+    Additional guardrail for the priority enum from specs/technical.md
+    under "Agent Task Payload (JSON – Planner → Worker)":
+    - priority: "high | medium | low"  (see specs/technical.md lines 11–13)
 
     This explicitly checks that a completely unsupported value (e.g., "medium-high")
     is rejected and raises a ValidationError, enforcing that only the three enum
@@ -208,7 +209,8 @@ def test_invalid_priority_value_not_in_spec_enum() -> None:
 
 def test_missing_required_context_field_raises_validation_error() -> None:
     """
-    This test targets the required fields inside the context object from the spec:
+    This test targets the required fields inside the context object from the
+    Agent Task payload spec in specs/technical.md (lines 14–18):
 
     "context": {
       "goal_description": "string",
