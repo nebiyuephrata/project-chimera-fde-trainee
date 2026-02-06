@@ -6,7 +6,7 @@
 help:
 	@echo "Available targets:"
 	@echo "  setup       - Install dependencies (uv sync --dev)"
-	@echo "  test        - Run all tests (pytest)"
+	@echo "  test        - Run all tests with pytest"
 	@echo "  lint        - Run Ruff lint checks"
 	@echo "  format      - Auto-format code with Ruff"
 	@echo "  type-check  - Run Mypy static type checking"

@@ -34,3 +34,5 @@ dev-dependencies = [
   "mypy",
   "pytest",
 ]
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
