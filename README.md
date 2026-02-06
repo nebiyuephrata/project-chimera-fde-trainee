@@ -81,3 +81,13 @@ make setup          # Install deps (uv sync)
 make test           # Run failing tests (TDD)
 make spec-check     # Validate code vs specs (custom script later)
 ```
+
+## Final Day 2 Status (Feb 06, 2026)
+- Full specs/ with vision, functional stories, technical schemas
+- .cursor/rules.md enforcing SRS
+- tooling_strategy.md + skills/ contracts
+- pyproject.toml + uv env
+- infra/Makefile with dev targets
+- Failing TDD tests
+- AGENTS.md governance stub
+- .env.example template
