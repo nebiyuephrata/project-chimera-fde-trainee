@@ -17,6 +17,8 @@ dependencies = [
   "requests",
   "coinbase-agentkit",
   "websockets",
+  "fastapi",
+  "uvicorn",
 ]
 
 [project.optional-dependencies]

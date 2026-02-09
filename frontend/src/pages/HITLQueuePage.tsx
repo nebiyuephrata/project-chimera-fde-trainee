@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import HitlQueueRow from "../components/HitlQueueRow";
 import { useHitlWebSocket } from "../hooks/useHitlWebSocket";
-import { fetchHitlQueue } from "../services/hitlApi";
+import { fetchHitlQueue, updateHitlTask } from "../services/hitlApi";
 import { useHitlStore } from "../context/hitlStore";
 
 const WS_URL = "ws://localhost:8000/hitl";
@@ -109,9 +109,18 @@ export default function HITLQueuePage() {
                     <HitlQueueRow
                       key={task.task_id}
                       task={task}
-                      onApprove={() => updateStatus(task.task_id, "approved")}
-                      onReject={() => updateStatus(task.task_id, "rejected")}
-                      onEdit={() => updateStatus(task.task_id, "editing")}
+                      onApprove={async () => {
+                        const updated = await updateHitlTask(task.task_id, "approve");
+                        updateStatus(updated.task_id, updated.status);
+                      }}
+                      onReject={async () => {
+                        const updated = await updateHitlTask(task.task_id, "reject");
+                        updateStatus(updated.task_id, updated.status);
+                      }}
+                      onEdit={async () => {
+                        const updated = await updateHitlTask(task.task_id, "edit");
+                        updateStatus(updated.task_id, updated.status);
+                      }}
                     />
                   ))}
                 </tbody>

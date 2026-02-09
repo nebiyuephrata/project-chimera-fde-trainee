@@ -1,7 +1,7 @@
 # Makefile for Project Chimera
 # Run from project root: make <target>
 
-.PHONY: help setup test lint format type-check spec-check demo mcp-demo redis-up frontend ws-mock db-up db-down
+.PHONY: help setup test lint format type-check spec-check demo mcp-demo redis-up frontend ws-mock db-up db-down api
 
 help:
 	@echo "Available targets:"
@@ -18,6 +18,7 @@ help:
 	@echo "  ws-mock     - Run mock HITL WebSocket server"
 	@echo "  db-up       - Start Redis/Postgres/Weaviate via Docker Compose"
 	@echo "  db-down     - Stop Docker Compose services"
+	@echo "  api         - Run HITL FastAPI server"
 
 setup:
 	uv sync --dev
@@ -57,3 +58,6 @@ db-up:
 
 db-down:
 	docker compose -f infra/docker-compose.yml down
+
+api:
+	PYTHONPATH=. uv run uvicorn src.api.hitl_api:app --reload --host 0.0.0.0 --port 8000
