@@ -101,7 +101,7 @@ def trend_fetch(input: TrendFetchInput) -> TrendFetchOutput:
 
     now = datetime.now(timezone.utc)
 
-    # Hardcoded, spec-conforming mock trends.
+    # Hardcoded, spec-conforming mock trends (>= 3 so Planner contract is satisfied).
     mock_trends: List[TrendItem] = [
         TrendItem(
             title="AI agents orchestrating social campaigns",
@@ -114,6 +114,12 @@ def trend_fetch(input: TrendFetchInput) -> TrendFetchOutput:
             summary="Emerging patterns of creators using crypto-native revenue models.",
             relevance=0.82,
             source_uri="mcp://news/top/onchain-creators-2",
+        ),
+        TrendItem(
+            title="Social-first brand campaigns",
+            summary="Brands increasingly adopting social-native content strategies.",
+            relevance=0.78,
+            source_uri="mcp://news/top/social-brand-3",
         ),
     ]
 

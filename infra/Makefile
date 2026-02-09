@@ -1,7 +1,7 @@
 # Makefile for Project Chimera
 # Run from project root: make <target>
 
-.PHONY: help setup test lint format type-check spec-check
+.PHONY: help setup test lint format type-check spec-check demo mcp-demo
 
 help:
 	@echo "Available targets:"
@@ -11,6 +11,8 @@ help:
 	@echo "  format      - Auto-format code with Ruff"
 	@echo "  type-check  - Run Mypy static type checking"
 	@echo "  spec-check  - Placeholder for spec validation (TODO)"
+	@echo "  demo        - Run the FastRender Swarm demo"
+	@echo "  mcp-demo    - Run the FastRender Swarm demo with MCP mock"
 
 setup:
 	uv sync --dev
@@ -29,3 +31,9 @@ type-check:
 
 spec-check:
 	@echo "TODO: implement spec validation script"
+
+demo:
+	PYTHONPATH=. uv run python src/swarm/demo.py
+
+mcp-demo:
+	PYTHONPATH=. uv run python src/swarm/demo.py
