@@ -16,6 +16,7 @@ dependencies = [
   "weaviate-client",
   "requests",
   "coinbase-agentkit",
+  "websockets",
 ]
 
 [project.optional-dependencies]
@@ -23,6 +24,7 @@ dev = [
   "ruff",
   "mypy",
   "pytest",
+  "websockets",
 ]
 
 [project.scripts]
@@ -33,6 +35,7 @@ dev-dependencies = [
   "ruff",
   "mypy",
   "pytest",
+  "websockets",
 ]
 [tool.hatch.build.targets.wheel]
 packages = ["src"]

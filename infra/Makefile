@@ -1,7 +1,7 @@
 # Makefile for Project Chimera
 # Run from project root: make <target>
 
-.PHONY: help setup test lint format type-check spec-check demo mcp-demo redis-up frontend
+.PHONY: help setup test lint format type-check spec-check demo mcp-demo redis-up frontend ws-mock
 
 help:
 	@echo "Available targets:"
@@ -15,6 +15,7 @@ help:
 	@echo "  mcp-demo    - Run the FastRender Swarm demo with MCP mock"
 	@echo "  redis-up    - Start Redis 7 via Docker"
 	@echo "  frontend    - Build the React frontend"
+	@echo "  ws-mock     - Run mock HITL WebSocket server"
 
 setup:
 	uv sync --dev
@@ -45,3 +46,6 @@ redis-up:
 
 frontend:
 	cd frontend && npm install && npm run build
+
+ws-mock:
+	PYTHONPATH=. uv run python src/swarm/ws_mock.py
