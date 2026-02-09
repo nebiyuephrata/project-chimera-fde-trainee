@@ -1,0 +1,15 @@
+{
+  "fleet": {
+    "agents": 12,
+    "active": 9,
+    "queued_tasks": 34,
+    "wallet_balance": "18.4 ETH",
+    "last_sync": "2026-02-09T14:25:00Z"
+  },
+  "agents": [
+    { "id": "planner-1", "status": "online", "last_task": "campaign brief" },
+    { "id": "worker-7", "status": "busy", "last_task": "trend synthesis" },
+    { "id": "judge-2", "status": "online", "last_task": "safety review" },
+    { "id": "worker-3", "status": "offline", "last_task": "retry pending" }
+  ]
+}
