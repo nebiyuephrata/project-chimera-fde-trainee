@@ -14,6 +14,7 @@ export default function HITLQueuePage() {
   const setTasks = useHitlStore((state) => state.setTasks);
   const updateStatus = useHitlStore((state) => state.updateStatus);
   const [apiHealthy, setApiHealthy] = useState(true);
+  const pendingCount = tasks.filter((task) => task.status === "pending").length;
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["hitl-queue"],
@@ -76,6 +77,12 @@ export default function HITLQueuePage() {
                 API offline. Start `make -f infra/Makefile api`.
               </p>
             )}
+          </div>
+          <div className="card px-6 py-4">
+            <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
+              Pending
+            </p>
+            <p className="mt-2 text-2xl font-display text-fog">{pendingCount}</p>
           </div>
         </header>
 

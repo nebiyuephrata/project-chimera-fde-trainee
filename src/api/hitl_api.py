@@ -9,7 +9,7 @@ from datetime import datetime, timezone
 from typing import Any, Dict, Iterable, List, Literal, Optional
 
 import redis
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -168,26 +168,17 @@ async def update_task(task_id: str, action: str, _payload: HitlUpdate | None = N
     _ensure_seed(_store)
     task = _store.get_task(task_id)
     if task is None:
-        return {
-            "task": HitlTask(
-                task_id=task_id,
-                snippet="Unknown task",
-                confidence=0.0,
-                reason="Not found",
-                timestamp=_now_iso(),
-                status="rejected",
-            )
-        }
+        raise HTTPException(status_code=404, detail="Task not found")
 
     if action not in {"approve", "reject", "edit"}:
-        return {"task": task}
+        raise HTTPException(status_code=400, detail="Invalid action")
 
     status_map = {"approve": "approved", "reject": "rejected", "edit": "editing"}
     updated = _store.update_status(task_id, status_map[action])
-    if updated:
-        await _broadcast({"type": "task.update", "payload": updated.model_dump()})
-        return {"task": updated}
-    return {"task": task}
+    if updated is None:
+        raise HTTPException(status_code=500, detail="Failed to update task")
+    await _broadcast({"type": "task.update", "payload": updated.model_dump()})
+    return {"task": updated}
 
 
 @app.websocket("/hitl")

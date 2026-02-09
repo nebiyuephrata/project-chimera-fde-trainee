@@ -30,10 +30,11 @@ export function useHitlWebSocket(url: string) {
         const message = JSON.parse(event.data) as HitlWsMessage;
         if (message.type === "task.new") {
           addTask(message.payload);
-          toast("New HITL task received");
+          toast.success("New HITL task received");
         }
         if (message.type === "task.update") {
           updateTask(message.payload);
+          toast("Task status updated");
         }
       } catch {
         // ignore malformed payloads
