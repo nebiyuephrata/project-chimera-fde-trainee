@@ -23,3 +23,12 @@ export async function updateHitlTask(
   const data = (await response.json()) as { task: HitlTask };
   return data.task;
 }
+
+export async function checkHitlHealth(): Promise<boolean> {
+  const response = await fetch("http://localhost:8000/health");
+  if (!response.ok) {
+    return false;
+  }
+  const data = (await response.json()) as { status?: string };
+  return data.status === "ok";
+}

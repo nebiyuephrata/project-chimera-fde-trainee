@@ -1,8 +1,9 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import toast from "react-hot-toast";
 import HitlQueueRow from "../components/HitlQueueRow";
 import { useHitlWebSocket } from "../hooks/useHitlWebSocket";
-import { fetchHitlQueue, updateHitlTask } from "../services/hitlApi";
+import { checkHitlHealth, fetchHitlQueue, updateHitlTask } from "../services/hitlApi";
 import { useHitlStore } from "../context/hitlStore";
 
 const WS_URL = "ws://localhost:8000/hitl";
@@ -12,6 +13,7 @@ export default function HITLQueuePage() {
   const tasks = useHitlStore((state) => state.tasks);
   const setTasks = useHitlStore((state) => state.setTasks);
   const updateStatus = useHitlStore((state) => state.updateStatus);
+  const [apiHealthy, setApiHealthy] = useState(true);
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["hitl-queue"],
@@ -23,6 +25,12 @@ export default function HITLQueuePage() {
       setTasks(data);
     }
   }, [data, setTasks]);
+
+  useEffect(() => {
+    checkHitlHealth()
+      .then(setApiHealthy)
+      .catch(() => setApiHealthy(false));
+  }, []);
 
   return (
     <div className="min-h-screen grid-glow">
@@ -63,6 +71,11 @@ export default function HITLQueuePage() {
                 </button>
               )}
             </div>
+            {!apiHealthy && (
+              <p className="mt-2 text-xs text-rose-300">
+                API offline. Start `make -f infra/Makefile api`.
+              </p>
+            )}
           </div>
         </header>
 
@@ -87,7 +100,7 @@ export default function HITLQueuePage() {
 
           {isError && (
             <div className="mt-6 rounded-xl border border-rose-500/30 bg-rose-500/10 p-4 text-sm text-rose-200">
-              Unable to load the initial queue. Verify `/api/hitl.json`.
+              Unable to load the initial queue. Verify the HITL API is running.
             </div>
           )}
 
@@ -110,16 +123,28 @@ export default function HITLQueuePage() {
                       key={task.task_id}
                       task={task}
                       onApprove={async () => {
-                        const updated = await updateHitlTask(task.task_id, "approve");
-                        updateStatus(updated.task_id, updated.status);
+                        try {
+                          const updated = await updateHitlTask(task.task_id, "approve");
+                          updateStatus(updated.task_id, updated.status);
+                        } catch {
+                          toast.error("Approve failed. API unavailable.");
+                        }
                       }}
                       onReject={async () => {
-                        const updated = await updateHitlTask(task.task_id, "reject");
-                        updateStatus(updated.task_id, updated.status);
+                        try {
+                          const updated = await updateHitlTask(task.task_id, "reject");
+                          updateStatus(updated.task_id, updated.status);
+                        } catch {
+                          toast.error("Reject failed. API unavailable.");
+                        }
                       }}
                       onEdit={async () => {
-                        const updated = await updateHitlTask(task.task_id, "edit");
-                        updateStatus(updated.task_id, updated.status);
+                        try {
+                          const updated = await updateHitlTask(task.task_id, "edit");
+                          updateStatus(updated.task_id, updated.status);
+                        } catch {
+                          toast.error("Edit failed. API unavailable.");
+                        }
                       }}
                     />
                   ))}
