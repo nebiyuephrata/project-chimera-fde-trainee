@@ -17,8 +17,6 @@ from __future__ import annotations
 
 import inspect
 
-import pytest
-
 from skills import trend_fetch as trend_fetch_skill
 
 
@@ -79,4 +77,3 @@ def test_post_content_skill_module_and_interface_exist() -> None:
     assert hasattr(
         post_content_skill, "post_content"
     ), "post_content() must be defined on skills.post_content"
-

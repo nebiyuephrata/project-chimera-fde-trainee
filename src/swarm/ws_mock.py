@@ -42,7 +42,7 @@ def now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
-async def handle_connection(websocket: websockets.WebSocketServerProtocol) -> None:
+async def handle_connection(websocket: Any) -> None:
     for task in TASKS:
         task = {**task, "timestamp": now_iso()}
         message = {"type": "task.new", "payload": task}

@@ -7,7 +7,7 @@ import uuid
 from datetime import datetime
 from pathlib import Path
 from threading import Event, Thread
-from typing import Literal
+from typing import Literal, TypedDict, cast
 
 import redis
 from pydantic import BaseModel, Field
@@ -75,15 +75,15 @@ def mcp_call(payload: dict[str, object]) -> dict[str, object]:
 
 def worker(client: redis.Redis, task_queue: str, results_queue: str) -> TaskPayload | None:
     """Pop a task, call mocked MCP, push result to results queue."""
-    raw_task = client.lpop(task_queue)
+    raw_task = cast(str | None, client.lpop(task_queue))
     if raw_task is None:
         return None
     task = TaskPayload.model_validate_json(raw_task)
     task.status = "in_progress"
 
-    payload = {
+    payload: dict[str, object] = {
         "skill": "trend_fetch",
-        "input": task.context.model_dump(),
+        "input": cast(dict[str, object], task.context.model_dump()),
         "task_id": task.task_id,
     }
     print("MCP payload:", json.dumps(payload, indent=2))
@@ -105,7 +105,13 @@ def worker(client: redis.Redis, task_queue: str, results_queue: str) -> TaskPayl
     return task
 
 
-def judge(result: str) -> dict[str, object]:
+class JudgeVerdict(TypedDict):
+    approved: bool
+    reason: str
+    confidence: float
+
+
+def judge(result: str) -> JudgeVerdict:
     """Score the result and decide approval."""
     confidence = 0.8 if "Trend:" in result else 0.4
     approved = confidence >= 0.7
@@ -136,7 +142,12 @@ def hitl_moderator(path: Path, result_box: dict[str, str], done: Event) -> None:
         done.set()
         return
     item = queue.pop(0)
-    decision = "approve" if item.get("confidence", 0) >= 0.6 else "reject"
+    confidence_value = item.get("confidence", 0)
+    if isinstance(confidence_value, (int, float, str)):
+        confidence = float(confidence_value)
+    else:
+        confidence = 0.0
+    decision = "approve" if confidence >= 0.6 else "reject"
     save_hitl_queue(path, queue)
     result_box["decision"] = decision
     done.set()
@@ -159,12 +170,12 @@ def main() -> None:
         print("No task processed (empty queue or MCP error).")
         return
 
-    raw_result = client.lpop(results_queue)
+    raw_result = cast(str | None, client.lpop(results_queue))
     if raw_result is None:
         print("No results to judge.")
         return
-    result_item = json.loads(raw_result)
-    result = result_item["result"]
+    result_item = cast(dict[str, object], json.loads(raw_result))
+    result = cast(str, result_item["result"])
     verdict = judge(result)
     pending.status = "complete" if verdict["approved"] else "review"
     hitl_path = Path("hitl_queue.json")
