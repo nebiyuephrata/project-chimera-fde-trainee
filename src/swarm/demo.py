@@ -5,6 +5,8 @@ from __future__ import annotations
 import json
 import uuid
 from datetime import datetime
+from pathlib import Path
+from threading import Event, Thread
 from typing import Literal
 
 from pydantic import BaseModel, Field
@@ -101,6 +103,35 @@ def judge(result: str) -> dict[str, object]:
     return {"approved": approved, "reason": reason, "confidence": confidence}
 
 
+def load_hitl_queue(path: Path) -> list[dict[str, object]]:
+    if not path.exists():
+        return []
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def save_hitl_queue(path: Path, queue: list[dict[str, object]]) -> None:
+    path.write_text(json.dumps(queue, indent=2), encoding="utf-8")
+
+
+def enqueue_hitl(path: Path, payload: dict[str, object]) -> None:
+    queue = load_hitl_queue(path)
+    queue.append(payload)
+    save_hitl_queue(path, queue)
+
+
+def hitl_moderator(path: Path, result_box: dict[str, str], done: Event) -> None:
+    queue = load_hitl_queue(path)
+    if not queue:
+        result_box["decision"] = "approve"
+        done.set()
+        return
+    item = queue.pop(0)
+    decision = "approve" if item.get("confidence", 0) >= 0.6 else "reject"
+    save_hitl_queue(path, queue)
+    result_box["decision"] = decision
+    done.set()
+
+
 def main() -> None:
     goal = "Create a short campaign update about creator trends."
     tasks = planner(goal)
@@ -121,12 +152,26 @@ def main() -> None:
 
     verdict = judge(result)
     pending.status = "complete" if verdict["approved"] else "review"
+    hitl_path = Path("hitl_queue.json")
+    decision = None
+    if verdict["confidence"] < 0.7:
+        enqueue_hitl(
+            hitl_path,
+            {"task_id": pending.task_id, "result": result, "confidence": verdict["confidence"]},
+        )
+        decision_box: dict[str, str] = {}
+        done = Event()
+        Thread(target=hitl_moderator, args=(hitl_path, decision_box, done), daemon=True).start()
+        if done.wait(timeout=0.2):
+            decision = decision_box.get("decision")
+            pending.status = "complete" if decision == "approve" else "review"
 
     output = {
         "goal": goal,
         "task": pending.model_dump(),
         "result": result,
         "verdict": verdict,
+        "hitl_decision": decision or "pending",
     }
     print(json.dumps(output, indent=2))
 
