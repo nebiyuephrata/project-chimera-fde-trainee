@@ -1,25 +1,159 @@
 skills:
   - name: trend_fetch
-    description: Fetch current trend signals for campaign planning.
+    description: Fetch trend signals for campaign planning.
     input_schema:
-      task_id: "uuid-v4"
-      task_type: "generate_content | reply_comment | execute_transaction"
-      priority: "high | medium | low"
-      context:
-        goal_description: "string"
-        persona_constraints: ["string"]
-        required_resources: ["mcp://memory/recent"]
+      $id: skills/trend_fetch/input
+      type: object
+      required: [query, locale, time_window_minutes]
+      properties:
+        query:
+          type: string
+          description: High-level topic or keyword to search trends for.
+        locale:
+          type: string
+          description: BCP-47 locale or region code (e.g., en-US, global).
+        time_window_minutes:
+          type: integer
+          minimum: 5
+          maximum: 1440
+          description: Lookback window for trends, in minutes.
+        platform_hints:
+          type: array
+          items:
+            type: string
+          description: Optional list of platform hints.
+      additionalProperties: false
     output_schema:
-      trend_summary: "string"
-  - name: generate_image
-    description: Generate a campaign image from context.
+      $id: skills/trend_fetch/output
+      type: object
+      required: [trends, query, generated_at]
+      properties:
+        query:
+          type: string
+        generated_at:
+          type: string
+          format: date-time
+        trends:
+          type: array
+          minItems: 0
+          items:
+            type: object
+            required: [title, relevance, source_uri]
+            properties:
+              title:
+                type: string
+              summary:
+                type: string
+              relevance:
+                type: number
+                minimum: 0.0
+                maximum: 1.0
+              source_uri:
+                type: string
+            additionalProperties: false
+      additionalProperties: false
+
+  - name: generate_content
+    description: Generate multimodal content candidates from a goal and persona.
     input_schema:
-      task_id: "uuid-v4"
-      task_type: "generate_content | reply_comment | execute_transaction"
-      priority: "high | medium | low"
-      context:
-        goal_description: "string"
-        persona_constraints: ["string"]
-        required_resources: ["mcp://memory/recent"]
+      $id: skills/generate_content/input
+      type: object
+      required: [goal_description, persona_id, target_platforms]
+      properties:
+        goal_description:
+          type: string
+        persona_id:
+          type: string
+        target_platforms:
+          type: array
+          minItems: 1
+          items:
+            type: string
+            enum: [twitter, instagram, tiktok, threads, youtube]
+        trend_ids:
+          type: array
+          items:
+            type: string
+        constraints:
+          type: object
+          properties:
+            max_length_tokens:
+              type: integer
+              minimum: 32
+              maximum: 4096
+            no_sensitive_topics:
+              type: boolean
+      additionalProperties: false
     output_schema:
-      image_url: "string"
+      $id: skills/generate_content/output
+      type: object
+      required: [persona_id, candidates]
+      properties:
+        persona_id:
+          type: string
+        candidates:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            required: [id, modality, body, safety_flags]
+            properties:
+              id:
+                type: string
+              modality:
+                type: string
+                enum: [text, image, video]
+              body:
+                type: string
+              safety_flags:
+                type: object
+                properties:
+                  requires_hitl:
+                    type: boolean
+                  policy_violations:
+                    type: array
+                    items:
+                      type: string
+                additionalProperties: false
+            additionalProperties: false
+      additionalProperties: false
+
+  - name: post_content
+    description: Publish or schedule content to a target platform.
+    input_schema:
+      $id: skills/post_content/input
+      type: object
+      required: [content_id, platform, dry_run]
+      properties:
+        content_id:
+          type: string
+        platform:
+          type: string
+          enum: [twitter, instagram, tiktok, threads, youtube]
+        dry_run:
+          type: boolean
+        scheduled_for:
+          type: string
+          format: date-time
+        judge_approval_id:
+          type: string
+      additionalProperties: false
+    output_schema:
+      $id: skills/post_content/output
+      type: object
+      required: [content_id, platform, dry_run, status]
+      properties:
+        content_id:
+          type: string
+        platform:
+          type: string
+        dry_run:
+          type: boolean
+        status:
+          type: string
+          enum: [scheduled, posted, simulated, failed]
+        provider_post_id:
+          type: string
+        error:
+          type: string
+      additionalProperties: false

@@ -1,0 +1,29 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  font-family: "IBM Plex Sans", system-ui, sans-serif;
+}
+
+.card {
+  background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(15, 23, 42, 0.7));
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 1.25rem;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.45);
+}
+
+.grid-glow {
+  background-image:
+    radial-gradient(circle at 15% 15%, rgba(16, 185, 129, 0.22), transparent 55%),
+    radial-gradient(circle at 85% 0%, rgba(249, 115, 22, 0.18), transparent 50%);
+}
+
+.badge {
+  border-radius: 999px;
+  padding: 0.2rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+}

@@ -556,6 +556,7 @@ dependencies = [
     { name = "redis" },
     { name = "requests" },
     { name = "weaviate-client" },
+    { name = "websockets" },
 ]
 
 [package.optional-dependencies]
@@ -563,6 +564,7 @@ dev = [
     { name = "mypy" },
     { name = "pytest" },
     { name = "ruff" },
+    { name = "websockets" },
 ]
 
 [package.dev-dependencies]
@@ -570,6 +572,7 @@ dev = [
     { name = "mypy" },
     { name = "pytest" },
     { name = "ruff" },
+    { name = "websockets" },
 ]
 
 [package.metadata]
@@ -583,6 +586,8 @@ requires-dist = [
     { name = "requests" },
     { name = "ruff", marker = "extra == 'dev'" },
     { name = "weaviate-client" },
+    { name = "websockets" },
+    { name = "websockets", marker = "extra == 'dev'" },
 ]
 provides-extras = ["dev"]
 
@@ -591,6 +596,7 @@ dev = [
     { name = "mypy" },
     { name = "pytest" },
     { name = "ruff" },
+    { name = "websockets" },
 ]
 
 [[package]]

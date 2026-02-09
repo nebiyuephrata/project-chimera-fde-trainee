@@ -16,8 +16,6 @@ from __future__ import annotations
 
 from typing import Iterable
 
-import pytest
-
 from skills.trend_fetch import TrendFetchInput, TrendFetchOutput, TrendItem, trend_fetch
 
 
@@ -76,4 +74,3 @@ def test_trend_fetcher_output_matches_contract_and_minimum_count() -> None:
         assert t.relevance >= 0.75
         # Spec note: source_uri should be an MCP resource handle, not raw HTTP.
         assert t.source_uri.startswith("mcp://")
-

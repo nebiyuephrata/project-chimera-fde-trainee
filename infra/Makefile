@@ -1,7 +1,7 @@
 # Makefile for Project Chimera
 # Run from project root: make <target>
 
-.PHONY: help setup test lint format type-check spec-check demo mcp-demo
+.PHONY: help setup test lint format type-check spec-check demo mcp-demo redis-up frontend ws-mock db-up db-down
 
 help:
 	@echo "Available targets:"
@@ -13,6 +13,11 @@ help:
 	@echo "  spec-check  - Placeholder for spec validation (TODO)"
 	@echo "  demo        - Run the FastRender Swarm demo"
 	@echo "  mcp-demo    - Run the FastRender Swarm demo with MCP mock"
+	@echo "  redis-up    - Start Redis 7 via Docker"
+	@echo "  frontend    - Build the React frontend"
+	@echo "  ws-mock     - Run mock HITL WebSocket server"
+	@echo "  db-up       - Start Redis/Postgres/Weaviate via Docker Compose"
+	@echo "  db-down     - Stop Docker Compose services"
 
 setup:
 	uv sync --dev
@@ -37,3 +42,18 @@ demo:
 
 mcp-demo:
 	PYTHONPATH=. uv run python src/swarm/demo.py
+
+redis-up:
+	docker run --rm -p 6379:6379 redis:7
+
+frontend:
+	cd frontend && npm install && npm run build
+
+ws-mock:
+	PYTHONPATH=. uv run python src/swarm/ws_mock.py
+
+db-up:
+	docker compose -f infra/docker-compose.yml up -d
+
+db-down:
+	docker compose -f infra/docker-compose.yml down

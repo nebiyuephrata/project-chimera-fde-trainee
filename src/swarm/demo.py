@@ -5,8 +5,11 @@ from __future__ import annotations
 import json
 import uuid
 from datetime import datetime
-from typing import Literal
+from pathlib import Path
+from threading import Event, Thread
+from typing import Literal, TypedDict, cast
 
+import redis
 from pydantic import BaseModel, Field
 
 
@@ -70,11 +73,17 @@ def mcp_call(payload: dict[str, object]) -> dict[str, object]:
     return {"status": response["status"], "data": response["data"], "skill": skill}
 
 
-def worker(task: TaskPayload, queue: list[TaskPayload]) -> str | None:
-    """Execute a task using mocked MCP."""
-    payload = {
+def worker(client: redis.Redis, task_queue: str, results_queue: str) -> TaskPayload | None:
+    """Pop a task, call mocked MCP, push result to results queue."""
+    raw_task = cast(str | None, client.lpop(task_queue))
+    if raw_task is None:
+        return None
+    task = TaskPayload.model_validate_json(raw_task)
+    task.status = "in_progress"
+
+    payload: dict[str, object] = {
         "skill": "trend_fetch",
-        "input": task.context.model_dump(),
+        "input": cast(dict[str, object], task.context.model_dump()),
         "task_id": task.task_id,
     }
     print("MCP payload:", json.dumps(payload, indent=2))
@@ -83,17 +92,26 @@ def worker(task: TaskPayload, queue: list[TaskPayload]) -> str | None:
 
     if response["status"] == 500:
         task.status = "pending"
-        queue.append(task)
+        client.rpush(task_queue, task.model_dump_json())
         return None
 
     trend = response["data"]
-    return (
+    result = (
         f"Task {task.task_id} ({task.task_type}) -> "
         f"{task.context.goal_description}. Trend: {trend}"
     )
+    task.status = "review"
+    client.rpush(results_queue, json.dumps({"task": task.model_dump(), "result": result}))
+    return task
 
 
-def judge(result: str) -> dict[str, object]:
+class JudgeVerdict(TypedDict):
+    approved: bool
+    reason: str
+    confidence: float
+
+
+def judge(result: str) -> JudgeVerdict:
     """Score the result and decide approval."""
     confidence = 0.8 if "Trend:" in result else 0.4
     approved = confidence >= 0.7
@@ -101,32 +119,90 @@ def judge(result: str) -> dict[str, object]:
     return {"approved": approved, "reason": reason, "confidence": confidence}
 
 
+def load_hitl_queue(path: Path) -> list[dict[str, object]]:
+    if not path.exists():
+        return []
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def save_hitl_queue(path: Path, queue: list[dict[str, object]]) -> None:
+    path.write_text(json.dumps(queue, indent=2), encoding="utf-8")
+
+
+def enqueue_hitl(path: Path, payload: dict[str, object]) -> None:
+    queue = load_hitl_queue(path)
+    queue.append(payload)
+    save_hitl_queue(path, queue)
+
+
+def hitl_moderator(path: Path, result_box: dict[str, str], done: Event) -> None:
+    queue = load_hitl_queue(path)
+    if not queue:
+        result_box["decision"] = "approve"
+        done.set()
+        return
+    item = queue.pop(0)
+    confidence_value = item.get("confidence", 0)
+    if isinstance(confidence_value, (int, float, str)):
+        confidence = float(confidence_value)
+    else:
+        confidence = 0.0
+    decision = "approve" if confidence >= 0.6 else "reject"
+    save_hitl_queue(path, queue)
+    result_box["decision"] = decision
+    done.set()
+
+
 def main() -> None:
     goal = "Create a short campaign update about creator trends."
     tasks = planner(goal)
+    redis_url = "redis://localhost:6379/0"
+    client = redis.Redis.from_url(redis_url, decode_responses=True)
+    task_queue = "swarm:tasks"
+    results_queue = "swarm:results"
+    judged_queue = "swarm:judged"
 
-    task_store: dict[str, TaskPayload] = {task.task_id: task for task in tasks}
-    result_store: dict[str, str] = {}
+    for task in tasks:
+        client.rpush(task_queue, task.model_dump_json())
 
-    queue = [task for task in task_store.values() if task.status == "pending"]
-    pending = queue.pop(0)
-    pending.status = "in_progress"
-
-    result = worker(pending, queue)
-    if result is None:
-        print("Task re-queued due to MCP error.")
+    pending = worker(client, task_queue, results_queue)
+    if pending is None:
+        print("No task processed (empty queue or MCP error).")
         return
-    result_store[pending.task_id] = result
-    pending.status = "review"
 
+    raw_result = cast(str | None, client.lpop(results_queue))
+    if raw_result is None:
+        print("No results to judge.")
+        return
+    result_item = cast(dict[str, object], json.loads(raw_result))
+    result = cast(str, result_item["result"])
     verdict = judge(result)
     pending.status = "complete" if verdict["approved"] else "review"
+    hitl_path = Path("hitl_queue.json")
+    decision = None
+    if verdict["confidence"] < 0.7:
+        enqueue_hitl(
+            hitl_path,
+            {"task_id": pending.task_id, "result": result, "confidence": verdict["confidence"]},
+        )
+        decision_box: dict[str, str] = {}
+        done = Event()
+        Thread(target=hitl_moderator, args=(hitl_path, decision_box, done), daemon=True).start()
+        if done.wait(timeout=0.2):
+            decision = decision_box.get("decision")
+            pending.status = "complete" if decision == "approve" else "review"
+
+    client.rpush(
+        judged_queue,
+        json.dumps({"task_id": pending.task_id, "status": pending.status, "verdict": verdict}),
+    )
 
     output = {
         "goal": goal,
         "task": pending.model_dump(),
         "result": result,
         "verdict": verdict,
+        "hitl_decision": decision or "pending",
     }
     print(json.dumps(output, indent=2))
 

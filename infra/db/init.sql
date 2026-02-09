@@ -1,0 +1,29 @@
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+CREATE TABLE IF NOT EXISTS campaigns (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  name TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'draft',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS logs (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  level TEXT NOT NULL,
+  message TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS wallet_states (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  wallet_id TEXT NOT NULL,
+  balance NUMERIC(20, 6) NOT NULL DEFAULT 0,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS user_accounts (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  email TEXT NOT NULL UNIQUE,
+  role TEXT NOT NULL DEFAULT 'operator',
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
