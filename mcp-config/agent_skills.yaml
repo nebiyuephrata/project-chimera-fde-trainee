@@ -1,0 +1,25 @@
+skills:
+  - name: trend_fetch
+    description: Fetch current trend signals for campaign planning.
+    input_schema:
+      task_id: "uuid-v4"
+      task_type: "generate_content | reply_comment | execute_transaction"
+      priority: "high | medium | low"
+      context:
+        goal_description: "string"
+        persona_constraints: ["string"]
+        required_resources: ["mcp://memory/recent"]
+    output_schema:
+      trend_summary: "string"
+  - name: generate_image
+    description: Generate a campaign image from context.
+    input_schema:
+      task_id: "uuid-v4"
+      task_type: "generate_content | reply_comment | execute_transaction"
+      priority: "high | medium | low"
+      context:
+        goal_description: "string"
+        persona_constraints: ["string"]
+        required_resources: ["mcp://memory/recent"]
+    output_schema:
+      image_url: "string"

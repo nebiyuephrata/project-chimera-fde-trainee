@@ -1,4 +1,5 @@
 # Project Chimera – FDE Trainee Submission
+![CI Status](https://github.com/nebiyuephrata/project-chimera-fde-trainee/actions/workflows/ci.yml/badge.svg)
 
 Spec-driven architecture for Autonomous AI Influencers using MCP, FastRender Swarm, Agentic Commerce (Coinbase AgentKit), and TDD governance.
 
@@ -29,6 +30,7 @@ project-chimera-fde-trainee/
 ├── docs/                         # Research, decisions, diagrams (Day 1–2)
 │   ├── research-summary.md
 │   ├── architecture_strategy.md
+│   ├── adr/                      # Architecture Decision Records
 │   └── diagrams/                 # Mermaid exports or draw.io files (optional)
 ├── infra/                        # Infrastructure as Code (Docker, Makefile, Helm later)
 │   ├── Dockerfile
@@ -81,3 +83,18 @@ make setup          # Install deps (uv sync)
 make test           # Run failing tests (TDD)
 make spec-check     # Validate code vs specs (custom script later)
 ```
+
+## Running Tests
+```bash
+make test   # Shows failing TDD tests (intentional)
+```
+
+## Final Day 2 Status (Feb 06, 2026)
+- Full specs/ with vision, functional stories, technical schemas
+- .cursor/rules.md enforcing SRS
+- tooling_strategy.md + skills/ contracts
+- pyproject.toml + uv env
+- infra/Makefile with dev targets
+- Failing TDD tests
+- AGENTS.md governance stub
+- .env.example template

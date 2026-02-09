@@ -1,42 +1,38 @@
 [build-system]
-requires = ["setuptools>=69", "wheel"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling>=1.25.0"]
+build-backend = "hatchling.build"
 
 [project]
-name = "project-chimera-fde-trainee"
-version = "0.0.1"
+name = "chimera-fde-trainee"
+version = "0.1.0"
 description = "Spec-driven architecture for autonomous AI influencers (FDE trainee)."
 readme = "README.md"
 requires-python = ">=3.11"
 authors = [{ name = "Ephrata Nebiyu" }]
 dependencies = [
   "pydantic",
+  "pytest",
+  "redis",
+  "weaviate-client",
+  "requests",
+  "coinbase-agentkit",
 ]
 
 [project.optional-dependencies]
 dev = [
-  "black>=24.0.0",
-  "pytest>=8.0.0",
-  "ruff>=0.6.0",
+  "ruff",
+  "mypy",
+  "pytest",
 ]
 
-[tool.setuptools.packages.find]
-where = ["."]
-include = ["src*"]
+[project.scripts]
+test = "pytest:main"
 
-[tool.black]
-line-length = 100
-target-version = ["py311"]
-
-[tool.ruff]
-line-length = 100
-target-version = "py311"
-extend-exclude = ["docs/diagrams", "infra/k8s"]
-
-[tool.ruff.lint]
-select = ["E", "F", "I", "B", "UP"]
-
-[tool.pytest.ini_options]
-testpaths = ["tests"]
-addopts = "-ra"
-
+[tool.uv]
+dev-dependencies = [
+  "ruff",
+  "mypy",
+  "pytest",
+]
+[tool.hatch.build.targets.wheel]
+packages = ["src"]

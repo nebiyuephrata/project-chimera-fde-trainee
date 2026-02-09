@@ -179,3 +179,62 @@ def test_context_requires_required_resources_list() -> None:
             status="pending",
         )
 
+
+def test_invalid_priority_value_not_in_spec_enum() -> None:
+    """
+    Additional guardrail for the priority enum from specs/technical.md
+    under "Agent Task Payload (JSON – Planner → Worker)":
+    - priority: "high | medium | low"  (see specs/technical.md lines 11–13)
+
+    This explicitly checks that a completely unsupported value (e.g., "medium-high")
+    is rejected and raises a ValidationError, enforcing that only the three enum
+    values from the spec are allowed.
+    """
+
+    with pytest.raises(ValidationError):
+        AgentTask(
+            task_id="123e4567-e89b-12d3-a456-426614174000",
+            task_type="reply_comment",
+            priority="medium-high",  # Not in {high, medium, low} from the spec.
+            context={
+                "goal_description": "Reply to top mentions.",
+                "persona_constraints": ["no political content"],
+                "required_resources": ["mcp://twitter/mentions/recent"],
+            },
+            assigned_worker_id="worker-3",
+            created_at="2026-02-06T13:00:00Z",
+            status="pending",
+        )
+
+
+def test_missing_required_context_field_raises_validation_error() -> None:
+    """
+    This test targets the required fields inside the context object from the
+    Agent Task payload spec in specs/technical.md (lines 14–18):
+
+    "context": {
+      "goal_description": "string",
+      "persona_constraints": ["string"],
+      "required_resources": ["mcp://twitter/mentions/123", "mcp://memory/recent"]
+    }
+
+    It intentionally omits goal_description while providing the other fields to
+    assert that every context field mandated by the spec is required at runtime.
+    The expected behavior is a ValidationError from Pydantic.
+    """
+
+    with pytest.raises(ValidationError):
+        AgentTask(
+            task_id="123e4567-e89b-12d3-a456-426614174000",
+            task_type="execute_transaction",
+            priority="low",
+            context={
+                # Missing goal_description on purpose.
+                "persona_constraints": ["respect campaign budget limits"],
+                "required_resources": ["mcp://memory/recent"],
+            },
+            assigned_worker_id="worker-4",
+            created_at="2026-02-06T13:05:00Z",
+            status="pending",
+        )
+
