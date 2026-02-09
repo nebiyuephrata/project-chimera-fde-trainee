@@ -1,12 +1,16 @@
-"""Minimal HITL API with REST + WebSocket (in-memory)."""
+"""Minimal HITL API with REST + WebSocket (Redis-backed, in-memory fallback)."""
 
 from __future__ import annotations
 
 import asyncio
+import os
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Literal
+from typing import Any, Dict, Iterable, List, Literal, Optional
 
+import redis
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 
@@ -24,21 +28,76 @@ class HitlUpdate(BaseModel):
     editor_note: str | None = None
 
 
-app = FastAPI(title="Chimera HITL API")
+@dataclass
+class InMemoryStore:
+    tasks: Dict[str, HitlTask] = field(default_factory=dict)
+    order: List[str] = field(default_factory=list)
 
-_tasks: Dict[str, HitlTask] = {}
-_task_order: List[str] = []
-_connections: List[WebSocket] = []
+    def seed(self, seed: Iterable[HitlTask]) -> None:
+        if self.tasks:
+            return
+        for task in seed:
+            self.tasks[task.task_id] = task
+            self.order.append(task.task_id)
+
+    def list_tasks(self) -> list[HitlTask]:
+        return [self.tasks[task_id] for task_id in self.order]
+
+    def get_task(self, task_id: str) -> Optional[HitlTask]:
+        return self.tasks.get(task_id)
+
+    def update_status(self, task_id: str, status: str) -> Optional[HitlTask]:
+        task = self.tasks.get(task_id)
+        if not task:
+            return None
+        task.status = status
+        self.tasks[task_id] = task
+        return task
+
+
+@dataclass
+class RedisStore:
+    client: redis.Redis
+    list_key: str = "hitl:tasks"
+    task_prefix: str = "hitl:task:"
+
+    def seed(self, seed: Iterable[HitlTask]) -> None:
+        if self.client.llen(self.list_key) > 0:
+            return
+        for task in seed:
+            self.client.rpush(self.list_key, task.task_id)
+            self.client.set(self.task_prefix + task.task_id, task.model_dump_json())
+
+    def list_tasks(self) -> list[HitlTask]:
+        task_ids = self.client.lrange(self.list_key, 0, -1)
+        tasks: list[HitlTask] = []
+        for task_id in task_ids:
+            raw = self.client.get(self.task_prefix + task_id)
+            if raw:
+                tasks.append(HitlTask.model_validate_json(raw))
+        return tasks
+
+    def get_task(self, task_id: str) -> Optional[HitlTask]:
+        raw = self.client.get(self.task_prefix + task_id)
+        if not raw:
+            return None
+        return HitlTask.model_validate_json(raw)
+
+    def update_status(self, task_id: str, status: str) -> Optional[HitlTask]:
+        task = self.get_task(task_id)
+        if not task:
+            return None
+        task.status = status
+        self.client.set(self.task_prefix + task_id, task.model_dump_json())
+        return task
 
 
 def _now_iso() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
-def _seed_tasks() -> None:
-    if _tasks:
-        return
-    seed = [
+def _seed_tasks() -> list[HitlTask]:
+    return [
         HitlTask(
             task_id="task-api-1",
             snippet="Generated summary for creator campaign launch.",
@@ -54,9 +113,31 @@ def _seed_tasks() -> None:
             timestamp=_now_iso(),
         ),
     ]
-    for task in seed:
-        _tasks[task.task_id] = task
-        _task_order.append(task.task_id)
+
+
+def _build_store() -> InMemoryStore | RedisStore:
+    if os.getenv("HITL_USE_MEMORY", "").lower() in {"1", "true", "yes"}:
+        return InMemoryStore()
+    redis_url = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+    client = redis.Redis.from_url(redis_url, decode_responses=True)
+    return RedisStore(client=client)
+
+
+def _ensure_seed(store: InMemoryStore | RedisStore) -> None:
+    store.seed(_seed_tasks())
+
+
+app = FastAPI(title="Chimera HITL API")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:5173"],
+    allow_credentials=True,
+    allow_methods=["*"] ,
+    allow_headers=["*"],
+)
+
+_connections: List[WebSocket] = []
+_store = _build_store()
 
 
 async def _broadcast(message: dict[str, Any]) -> None:
@@ -70,17 +151,22 @@ async def _broadcast(message: dict[str, Any]) -> None:
             _connections.remove(ws)
 
 
+@app.get("/health")
+def health() -> dict[str, str]:
+    return {"status": "ok"}
+
+
 @app.get("/hitl/tasks")
 def get_hitl_tasks() -> dict[str, list[HitlTask]]:
-    _seed_tasks()
-    tasks = [_tasks[task_id] for task_id in _task_order]
+    _ensure_seed(_store)
+    tasks = _store.list_tasks()
     return {"tasks": tasks}
 
 
 @app.post("/hitl/{task_id}/{action}")
-async def update_task(task_id: str, action: str, payload: HitlUpdate | None = None) -> dict[str, HitlTask]:
-    _seed_tasks()
-    task = _tasks.get(task_id)
+async def update_task(task_id: str, action: str, _payload: HitlUpdate | None = None) -> dict[str, HitlTask]:
+    _ensure_seed(_store)
+    task = _store.get_task(task_id)
     if task is None:
         return {
             "task": HitlTask(
@@ -97,9 +183,10 @@ async def update_task(task_id: str, action: str, payload: HitlUpdate | None = No
         return {"task": task}
 
     status_map = {"approve": "approved", "reject": "rejected", "edit": "editing"}
-    task.status = status_map[action]
-    _tasks[task_id] = task
-    await _broadcast({"type": "task.update", "payload": task.model_dump()})
+    updated = _store.update_status(task_id, status_map[action])
+    if updated:
+        await _broadcast({"type": "task.update", "payload": updated.model_dump()})
+        return {"task": updated}
     return {"task": task}
 
 
@@ -107,9 +194,9 @@ async def update_task(task_id: str, action: str, payload: HitlUpdate | None = No
 async def hitl_ws(websocket: WebSocket) -> None:
     await websocket.accept()
     _connections.append(websocket)
-    _seed_tasks()
-    for task_id in _task_order:
-        await websocket.send_json({"type": "task.new", "payload": _tasks[task_id].model_dump()})
+    _ensure_seed(_store)
+    for task in _store.list_tasks():
+        await websocket.send_json({"type": "task.new", "payload": task.model_dump()})
         await asyncio.sleep(0.5)
     try:
         while True:
