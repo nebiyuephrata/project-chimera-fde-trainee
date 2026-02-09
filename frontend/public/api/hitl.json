@@ -1,0 +1,28 @@
+{
+  "tasks": [
+    {
+      "task_id": "task-9f13",
+      "snippet": "Drafted post about AI creator tools with bold claims.",
+      "confidence": 0.62,
+      "reason": "Low confidence: factual accuracy",
+      "timestamp": "2026-02-09T13:45:00Z",
+      "status": "pending"
+    },
+    {
+      "task_id": "task-a22c",
+      "snippet": "Reply to comment on campaign launch announcement.",
+      "confidence": 0.74,
+      "reason": "Borderline tone alignment",
+      "timestamp": "2026-02-09T13:15:00Z",
+      "status": "pending"
+    },
+    {
+      "task_id": "task-d771",
+      "snippet": "Generated product pricing summary for sponsor update.",
+      "confidence": 0.58,
+      "reason": "Requires legal review",
+      "timestamp": "2026-02-09T12:55:00Z",
+      "status": "pending"
+    }
+  ]
+}
