@@ -1,7 +1,7 @@
 # Makefile for Project Chimera
 # Run from project root: make <target>
 
-.PHONY: help setup test lint format type-check spec-check demo mcp-demo
+.PHONY: help setup test lint format type-check spec-check demo mcp-demo redis-up
 
 help:
 	@echo "Available targets:"
@@ -13,6 +13,7 @@ help:
 	@echo "  spec-check  - Placeholder for spec validation (TODO)"
 	@echo "  demo        - Run the FastRender Swarm demo"
 	@echo "  mcp-demo    - Run the FastRender Swarm demo with MCP mock"
+	@echo "  redis-up    - Start Redis 7 via Docker"
 
 setup:
 	uv sync --dev
@@ -37,3 +38,6 @@ demo:
 
 mcp-demo:
 	PYTHONPATH=. uv run python src/swarm/demo.py
+
+redis-up:
+	docker run --rm -p 6379:6379 redis:7
