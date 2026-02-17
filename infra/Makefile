@@ -1,7 +1,7 @@
 # Makefile for Project Chimera
 # Run from project root: make <target>
 
-.PHONY: help setup test lint format type-check spec-check demo mcp-demo redis-up frontend ws-mock db-up db-down api
+.PHONY: help setup test lint format type-check spec-check demo mcp-demo redis-up frontend ws-mock db-up db-down api orchestrator-api hitl-smoke
 
 help:
 	@echo "Available targets:"
@@ -16,9 +16,11 @@ help:
 	@echo "  redis-up    - Start Redis 7 via Docker"
 	@echo "  frontend    - Build the React frontend"
 	@echo "  ws-mock     - Run mock HITL WebSocket server"
-	@echo "  db-up       - Start Redis/Postgres/Weaviate via Docker Compose"
+	@echo "  db-up       - Start Orchestrator API + Redis/Postgres/Weaviate via Docker Compose"
 	@echo "  db-down     - Stop Docker Compose services"
-	@echo "  api         - Run HITL FastAPI server"
+	@echo "  api         - Run HITL FastAPI server (local)"
+	@echo "  orchestrator-api - Run Orchestrator Campaign API (local, Postgres-backed)"
+	@echo "  hitl-smoke  - Run HITL API/WS smoke test"
 
 setup:
 	uv sync --dev
@@ -61,3 +63,9 @@ db-down:
 
 api:
 	PYTHONPATH=. uv run uvicorn src.api.hitl_api:app --reload --host 0.0.0.0 --port 8000
+
+orchestrator-api:
+	CHIMERA_CAMPAIGN_DB_BACKEND=postgres PYTHONPATH=. uv run uvicorn src.api.orchestrator_api:app --reload --host 0.0.0.0 --port 8001
+
+hitl-smoke:
+	PYTHONPATH=. uv run python scripts/hitl_smoke.py

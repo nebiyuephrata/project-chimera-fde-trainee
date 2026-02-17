@@ -18,6 +18,7 @@ env/
 *.egg-info/
 dist/
 build/
+site/
 
 # Logs
 *.log
@@ -25,12 +26,22 @@ build/
 # Unit test / coverage
 .pytest_cache/
 .mypy_cache/
+.coverage
+coverage/
+htmlcov/
 
 # Ruff cache
 .ruff_cache/
 
 # Environment files (keep .env.example tracked)
 .env
+.env.*
+!.env.example
+
+# Frontend dependencies/build
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
 
 # Editor / IDE metadata
 .idea/
@@ -41,4 +52,3 @@ build/
 
 # Cursor-specific cache
 .cursor/cache/
-
