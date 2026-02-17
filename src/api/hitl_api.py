@@ -89,6 +89,11 @@ class RedisStore:
             return None
         task.status = status
         self.client.set(self.task_prefix + task_id, task.model_dump_json())
+        if status in {"approved", "rejected"}:
+            self.client.lrem(self.list_key, 0, task_id)
+        elif status == "editing":
+            self.client.lrem(self.list_key, 0, task_id)
+            self.client.rpush(self.list_key, task_id)
         return task
 
 

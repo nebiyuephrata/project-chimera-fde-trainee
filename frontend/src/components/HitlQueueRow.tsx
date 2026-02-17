@@ -1,4 +1,3 @@
-import { Button } from "@headlessui/react";
 import type { HitlTask } from "../types/hitl";
 import { confidenceTone } from "../utils/status";
 import { formatRelative } from "../utils/format";
@@ -26,24 +25,24 @@ export default function HitlQueueRow({ task, onApprove, onReject, onEdit }: Hitl
       </td>
       <td className="px-4 py-4">
         <div className="flex flex-wrap gap-2">
-          <Button
+          <button
             className="rounded-lg bg-emerald-500/20 px-3 py-1 text-xs font-semibold text-emerald-200"
             onClick={onApprove}
           >
             Approve
-          </Button>
-          <Button
+          </button>
+          <button
             className="rounded-lg bg-rose-500/20 px-3 py-1 text-xs font-semibold text-rose-200"
             onClick={onReject}
           >
             Reject
-          </Button>
-          <Button
+          </button>
+          <button
             className="rounded-lg bg-slate-500/20 px-3 py-1 text-xs font-semibold text-slate-200"
             onClick={onEdit}
           >
             Edit
-          </Button>
+          </button>
         </div>
       </td>
     </tr>

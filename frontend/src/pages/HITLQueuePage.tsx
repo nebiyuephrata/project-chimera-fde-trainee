@@ -4,15 +4,16 @@ import toast from "react-hot-toast";
 import HitlQueueRow from "../components/HitlQueueRow";
 import { useHitlWebSocket } from "../hooks/useHitlWebSocket";
 import { checkHitlHealth, fetchHitlQueue, updateHitlTask } from "../services/hitlApi";
+import type { HitlState } from "../context/hitlStore";
 import { useHitlStore } from "../context/hitlStore";
 
 const WS_URL = "ws://localhost:8000/hitl";
 
 export default function HITLQueuePage() {
   const { status, reconnect } = useHitlWebSocket(WS_URL);
-  const tasks = useHitlStore((state) => state.tasks);
-  const setTasks = useHitlStore((state) => state.setTasks);
-  const updateStatus = useHitlStore((state) => state.updateStatus);
+  const tasks = useHitlStore((state: HitlState) => state.tasks);
+  const setTasks = useHitlStore((state: HitlState) => state.setTasks);
+  const updateStatus = useHitlStore((state: HitlState) => state.updateStatus);
   const [apiHealthy, setApiHealthy] = useState(true);
   const pendingCount = tasks.filter((task) => task.status === "pending").length;
 

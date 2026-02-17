@@ -1,7 +1,7 @@
 import { create } from "zustand";
 import type { HitlTask } from "../types/hitl";
 
-interface HitlState {
+export interface HitlState {
   tasks: HitlTask[];
   setTasks: (tasks: HitlTask[]) => void;
   addTask: (task: HitlTask) => void;
